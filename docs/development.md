@@ -24,9 +24,13 @@ Call `store.select(.fixed(location))` to change city, or `store.refresh()` to fe
 xcrun swift test --disable-sandbox
 ```
 
-The build creates `build/AQI Bar.app` for the current Mac's architecture and signs it ad hoc. `--disable-sandbox` avoids nesting SwiftPM's build sandbox inside an agent's sandbox. It does not change the app's permissions.
+The build creates `build/AQI Bar.app` for the current Mac's architecture. By default it selects the sole valid Developer ID Application identity from Keychain, signs with a secure timestamp and hardened runtime, and verifies the signature and team ID. If there are multiple identities, set `CODE_SIGN_IDENTITY` to the intended certificate name or SHA-1 hash. Missing or ambiguous identities fail the build instead of silently producing an ad-hoc signature. `CODE_SIGN_IDENTITY=- ./build.sh` explicitly opts into an ad-hoc local build. Signing does not notarize the app.
+
+`--disable-sandbox` avoids nesting SwiftPM's build sandbox inside an agent's sandbox. It does not change the app's permissions.
 
 Tests use separate UserDefaults suites. They cover AQI boundaries, malformed responses, quota errors, stale readings, city changes, cache recovery, retries, cancellation, and API-key redaction.
+
+See [releasing](releasing.md) for notarization, packaging, and Homebrew updates.
 
 ## Rebuild screenshots
 

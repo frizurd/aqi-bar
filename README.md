@@ -12,9 +12,18 @@ Air quality in your Mac’s menu bar. Pick a city and see its US AQI in the syst
 
 ## Install
 
-[Download AQI Bar for Apple silicon](https://github.com/frizurd/aqi-bar/releases/latest). After unzipping, drag **AQI Bar.app** into Applications and open it. You'll need macOS 13 or later; the ZIP is for Apple silicon.
+Install with Homebrew on Apple silicon (macOS 13 or later):
 
-The download is ad hoc signed, not notarized by Apple. You can also build it yourself; Intel Macs need a local build.
+```sh
+brew tap frizurd/tap
+brew install --cask frizurd/tap/aqi-bar
+```
+
+Homebrew 7 or newer requires `brew trust --cask frizurd/tap/aqi-bar` after tapping and before installing.
+
+Or [download AQI Bar for Apple silicon](https://github.com/frizurd/aqi-bar/releases/latest), unzip it, and drag **AQI Bar.app** into Applications. The release is signed with Developer ID and notarized by Apple. Open it from Applications to set your API key and location. Intel Macs need a local build.
+
+To start it when you log in, add **AQI Bar** under **System Settings → General → Login Items**. Homebrew upgrades keep the app at `/Applications/AQI Bar.app`.
 
 ## Set your location
 
@@ -69,3 +78,7 @@ xcrun swift test --disable-sandbox
 ```
 
 The build uses Apple frameworks and has no third-party package dependencies. See [development notes](docs/development.md) for the code layout and screenshot renderer.
+
+The build automatically uses your sole valid **Developer ID Application** certificate from Keychain, enables the hardened runtime, and includes a secure timestamp. To choose a certificate, run `CODE_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./build.sh`. Signing requires access to the certificate's private key. The script verifies the signature and team ID before reporting success; notarization is a separate step.
+
+If you don't have a signing certificate, use `CODE_SIGN_IDENTITY=- ./build.sh` for a local ad-hoc build without a team ID.

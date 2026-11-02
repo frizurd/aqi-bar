@@ -1,6 +1,20 @@
 #!/bin/zsh
 set -euo pipefail
 cd "${0:A:h}"
+
+# Prefer the installed distribution certificate; never silently fall back to ad hoc.
+signing_identity="${CODE_SIGN_IDENTITY:-}"
+if [[ -z "$signing_identity" ]]; then
+  identities=("${(@f)$(/usr/bin/security find-identity -v -p codesigning | /usr/bin/sed -nE 's/^[[:space:]]*[0-9]+\) ([0-9A-F]+) "Developer ID Application:.*"$/\1/p')}")
+  if (( ${#identities} != 1 )) || [[ -z "${identities[1]}" ]]; then
+    print -u2 'Set CODE_SIGN_IDENTITY to a signing certificate name or SHA-1 hash.'
+    print -u2 'Expected one valid Developer ID Application identity. Run: security find-identity -v -p codesigning'
+    print -u2 'For an explicitly ad-hoc local build only, set CODE_SIGN_IDENTITY=-.'
+    exit 1
+  fi
+  signing_identity="${identities[1]}"
+fi
+
 /usr/bin/xcrun swift build --disable-sandbox -c release
 app="$PWD/build/AQI Bar.app"
 mkdir -p "$app/Contents/MacOS"
@@ -24,12 +38,26 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>AQI Bar</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
-<key>CFBundleShortVersionString</key><string>1.0.0</string>
-<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>1.0.1</string>
+<key>CFBundleVersion</key><string>2</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-/usr/bin/codesign --force --sign - "$app"
+if [[ "$signing_identity" == - ]]; then
+  /usr/bin/codesign --force --sign - "$app"
+else
+  /usr/bin/codesign --force --options runtime --timestamp --sign "$signing_identity" "$app"
+fi
+/usr/bin/codesign --verify --deep --strict --verbose=2 "$app"
+signature=$(/usr/bin/codesign --display --verbose=2 "$app" 2>&1)
+if [[ "$signing_identity" != - ]]; then
+  team_id=$(print -r -- "$signature" | /usr/bin/sed -n 's/^TeamIdentifier=//p')
+  if [[ -z "$team_id" || "$team_id" == 'not set' || "$signature" == *'Signature=adhoc'* ]]; then
+    print -u2 'Signing failed: expected a certificate signature with a team ID.'
+    exit 1
+  fi
+fi
+print -r -- "$signature"
 print "Built $app"
