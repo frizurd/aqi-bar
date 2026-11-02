@@ -12,7 +12,7 @@ Air quality in your Mac’s menu bar. Pick a city and see its US AQI in the syst
 
 ## Install
 
-[Download AQI Bar for Apple silicon](https://github.com/frizurd/aqi-bar/releases/latest). Requires macOS 13 or later. Unzip it and move **AQI Bar.app** to Applications.
+[Download AQI Bar for Apple silicon](https://github.com/frizurd/aqi-bar/releases/latest). After unzipping, drag **AQI Bar.app** into Applications and open it. You'll need macOS 13 or later; the ZIP is for Apple silicon.
 
 The download is ad hoc signed, not notarized by Apple. You can also build it yourself; Intel Macs need a local build.
 
@@ -41,15 +41,15 @@ The colors come from the original SketchyBar plugin. AQI Bar runs on its own; Sk
 
 ## Refreshes and missed readings
 
-The app checks IQAir every 15 minutes and when your Mac wakes. After a connection failure, it retries after 10, 20, and 40 seconds.
+Leave it running and readings refresh every 15 minutes. Waking your Mac triggers another check. If the connection drops, it tries again after 10, 20, and 40 seconds.
 
-If a refresh fails, the last reading stays visible with a trailing dot: `AQI 160 ·`. The details say **Last known**. The app also marks a reading stale if it was checked over 30 minutes ago or measured over three hours ago. Changing cities clears the previous reading immediately.
+A trailing dot (`AQI 160 ·`) means the reading is old or a refresh failed. Open the menu for **Last known** and the timestamps. A reading counts as old after 30 minutes without a successful check, or three hours since measurement. Changing cities clears the previous reading immediately.
 
 ## Data and API keys
 
 Location searches go to Apple Maps. The selected coordinates go to IQAir. The app doesn't ask for device-location access.
 
-Keys entered in Settings are saved to macOS Keychain. Your chosen location and latest reading are saved locally. If you used the original SketchyBar plugin, AQI Bar can import its existing IQAir key on first launch.
+Keys entered in Settings are saved to macOS Keychain. Your chosen location and latest reading are saved locally. For existing SketchyBar users, first launch can copy the plugin's IQAir key into Keychain.
 
 ## Build
 
@@ -68,4 +68,4 @@ To run the tests:
 xcrun swift test --disable-sandbox
 ```
 
-There are no third-party package dependencies. See [development notes](docs/development.md) for the code layout and screenshot renderer.
+The build uses Apple frameworks and has no third-party package dependencies. See [development notes](docs/development.md) for the code layout and screenshot renderer.
